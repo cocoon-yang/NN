@@ -319,10 +319,7 @@ public:
 		}
 		std::cout << std::endl;
 	}
-
-public:
-  
-
+ 
 public:
 	void train(float* input, float* y, float lr)
 	{ 
@@ -376,28 +373,7 @@ public:
 				}
 			}
 		}
-
-
-		//// DEBUG -- BEGIN --  
-		//std::cout << std::endl;
-		std::cout << "Train:" << std::endl; 
-		//std::cout << " Y:" << std::endl;
-		//for (size_t i = 0; i < OUTPUT_SIZE; i++)
-		//{
-		//	std::cout << "  " << y[i] << std::endl;
-		//} 
-		//std::cout << "pY_bar:" << std::endl;
-		//for (size_t i = 0; i < OUTPUT_SIZE; i++)
-		//{
-		//	std::cout << "  " << pY_bar[i] << " " << std::endl;
-		//} 
-		std::cout << " Diff:" << std::endl;
-		for (size_t i = 0; i < OUTPUT_SIZE; i++)
-		{
-			std::cout << "  " << pDiff[i] << " " << std::endl;
-		}
-		//// DEBUG -- END --  
-
+		  
 		size_t m = model.size();
 		for (int i = (int)m - 1; i >= 0; i--)
 		{
@@ -426,64 +402,7 @@ public:
 			pDiff = input_Grad;
 		} 
 	}
-
-
-	//void train( float* input, float* y, float lr) {
-	// 
-	//	Layer* inputLay = model[0]; 
-	//	Layer* outputLay = model[1];
-	//
-	//	int HIDDEN_SIZE = inputLay->getOutputNum();
-	//	int OUTPUT_SIZE = outputLay->getOutputNum();
-	//
-	//	float* hidden_output = new float[HIDDEN_SIZE]; 
-	//	float* final_output = new float[OUTPUT_SIZE];
-	//
-	//	float* output_grad = new float[OUTPUT_SIZE] { 0 };
-	//	float* hidden_grad = new float[HIDDEN_SIZE] { 0 };
-	//	 
-	//	 
-	//	// 前向传递：从输入层到隐藏层
-	//	inputLay->forward(input, hidden_output);
-	// 
-	//	// ReLU (Rectified Linear Unit)  
-	//	for (int i = 0; i < HIDDEN_SIZE; i++)
-	//	{
-	//		hidden_output[i] = hidden_output[i] > 0 ? hidden_output[i] : 0;  
-	//	}
-	// 
-	//	// 前向传递：从隐藏层到输出层
-	//	outputLay->forward( hidden_output, final_output);
-	//	//softmax(final_output, OUTPUT_SIZE);
-	//
-	//	// 计算输出梯度
-	//	for (int i = 0; i < OUTPUT_SIZE; i++)
-	//	{
-	//		float diff_val = final_output[i] - y[i];
-	//		output_grad[i] = 2.0f * diff_val;
-	//	}
-	//
-	//
-	//	// 反向传播：从输出层到隐藏层
-	//	outputLay->backward( hidden_output, output_grad, hidden_grad, lr);
-	//
-	//	// 通过 ReLU 激活函数反向传播
-	//	for (int i = 0; i < HIDDEN_SIZE; i++)
-	//	{
-	//		hidden_grad[i] *= hidden_output[i] > 0 ? 1 : 0;   
-	//	}
-	//
-	//
-	//	// 反向传播：从隐藏层到输入层
-	//	inputLay->backward( input, hidden_grad, NULL, lr); 
-	//
-	//	delete[] hidden_output;
-	//	delete[] final_output;
-	//	delete[] output_grad;
-	//	delete[] hidden_grad;
-	//}
-
-
+	 
 	void softmax(float* input, int size) {
 		float max = input[0], sum = 0;
 		for (int i = 1; i < size; i++)
@@ -519,16 +438,6 @@ public:
 		{
 			final_input[i] = input[i];
 		}
-
-		//
-		//std::cout << "predict:" << std::endl;
-		//pLayer->show(0);
-		//std::cout << "final_input:" << std::endl;
-		//for (size_t i = 0; i < INPUT_SIZE; i++)
-		//{
-		//	std::cout << final_input[i] << "  " << std::endl;
-		//}
-		//
 		 
 		pLayer->forward(final_input, final_output);
 
@@ -550,17 +459,7 @@ public:
 			 
 			pLayer->forward(final_input, final_output); 
 		}
-		  
-		// 
-		//OUTPUT_SIZE = topology[n];
-		//std::cout << "NN::Predict Result:" << std::endl;
-		//for (size_t i = 0; i < OUTPUT_SIZE; i++)
-		//{
-		//	std::cout << final_output[i] << std::endl;
-		//}
-		//std::cout << std::endl;
-		//
-
+		   
 		return result;
 	}
 private:
