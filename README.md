@@ -3,6 +3,44 @@ This a simple Neural Network in C++.
 For Windows user, if your working context is Visual Studio 2020, just open the command prompt, then go to '\tmp' folder, 
 and trigger 'run.bat'.
 
+A linear regression example.
+
+The target linear model is 
+
+y = 10.0 x 
+
+~~~
+	// Create a neural network model
+	NN theNN; 
+	
+	// Setting the topology of the network.
+	// Input variables number: 1 
+	// Output variables number: 1 
+	// There are 
+	//    1 layer 
+	//    1 neuro 
+	//  in the network.
+	theNN.setModel({1,1});
+
+	// Show the topology of the network 
+	theNN.show();
+	 
+	// Testing function 
+	//  y = w * x 
+	// Trainning the model 
+	for (int i = 0; i < 20; i++)
+	{ 
+		x[0] = 0.1f * i + 0.1f;
+		y[0] = 10.0f * x[0];
+
+		theNN.train(x, y, 0.3f);
+	}
+	 
+	// Show the result 
+	theNN.show();
+~~~
+
+
 The results are like:
 ~~~
 Hello World
@@ -91,3 +129,4 @@ Layer 0
   Weights:
    9.99999
 ~~~
+After trainning, the weight we get from the NN model is 9.9999
