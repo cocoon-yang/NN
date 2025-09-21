@@ -2,11 +2,9 @@
 #include "nn.h"
 
 void testNN()
-{
-	float w[]{ 0.4f, 0.3f, 0.1f };  
+{   
 	float x[]{ 1.4f, 0.3f, 0.1f };
-	float y[]{ 0.4f, 0.3f, 0.1f };
-	float out[]{ 0.4f, 0.3f, 0.1f }; 
+	float y[]{ 0.4f, 0.3f, 0.1f }; 
 	 
 	// Create a neural network model
 	NN theNN; 
