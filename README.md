@@ -1,4 +1,4 @@
-This a simple Neural Network in C++.
+This is a simple Neural Network in C++.
 
 For Windows user, if your working context is Visual Studio 2020, just open the command prompt, then go to '\tmp' folder, 
 and trigger 'run.bat'.
