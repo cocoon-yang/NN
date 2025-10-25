@@ -3,13 +3,144 @@
 #include <vector> 
 #include <memory>  
 #include <random>
+#include <cmath>
 
-/**
- * @brief https://zhuanlan.zhihu.com/p/31381234209 
+/* 
+ ref  https://github.com/libfann/fann
 */
+enum ACTIVATIONFUNC 
+{
+	LINEAR = 0,
+	POW,
+	THRESHOLD,
+	THRESHOLD_SYMMETRIC,
+	SIGMOID,
+	SIGMOID_STEPWISE,
+	SIGMOID_SYMMETRIC,
+	SIGMOID_SYMMETRIC_STEPWISE,
+	GAUSSIAN,
+	GAUSSIAN_SYMMETRIC, 
+	 GAUSSIAN_STEPWISE,
+	 ELLIOT,
+	 ELLIOT_SYMMETRIC,
+	 LINEAR_PIECE,
+	 LINEAR_PIECE_SYMMETRIC,
+	 SIN_SYMMETRIC,
+	 COS_SYMMETRIC,
+	 SIN,
+	 COS
+};
 
+static std::random_device rd;
+static std::mt19937 gen(rd());
+static std::uniform_real_distribution<double> dis(-1.0, 1.0);
+
+static float getRandVal()
+{
+	float a = (float)dis(gen);
+	return a;
+}
+ 
 typedef float DataType; 
 typedef unsigned int uint;
+ 
+
+static DataType pow_real(DataType value, DataType order)
+{
+	DataType result = pow(value, order);
+	return result;
+}
+static DataType pow_derive(DataType steepness, DataType value, DataType order)
+{
+	DataType result = pow(value, order - 1.0);
+	result = steepness * result * order;
+	if (0.0 == order)
+	{
+		result = 0.0;
+	}
+	return result;
+}
+
+static DataType sigmoid_real(DataType value)
+{
+	DataType result = 1.0f / (1.0f + exp(-2.0f * value));
+	return result;
+}
+static DataType sigmoid_derive(DataType steepness, DataType value)
+{
+	DataType result = 2.0f * steepness * value * (1.0f - value);
+	return result;
+}
+
+static DataType sigmoid_symmetric_real(DataType value)
+{
+	DataType result = 2.0f / (1.0f + exp(-2.0f * value)) - 1.0f;
+	return result;
+}
+static DataType sigmoid_symmetric_derive(DataType steepness, DataType value)
+{
+	DataType result = steepness * (1.0f - (value * value));
+	return result;
+}
+
+static DataType gaussian_real(DataType value)
+{
+	DataType result = exp(-value * value);
+	return result;
+}
+static DataType gaussian_derive(DataType steepness, DataType value)
+{
+	DataType result = steepness * (1.0f - (value * value));
+	return result;
+}
+
+static DataType sin_symmetric_real(DataType value)
+{
+	DataType result = sin(value);
+	return result;
+}
+static DataType sin_symmetric_derive(DataType steepness, DataType value)
+{
+	DataType result = steepness * cos(steepness * value);
+	return result;
+}
+
+static DataType sin_real(DataType value)
+{
+	DataType result = sin(value) / 2.0f + 0.5f;
+	return result;
+}
+static DataType sin_derive(DataType steepness, DataType value)
+{
+	DataType result = steepness * cos(steepness * value) / 2.0f;
+	return result;
+}
+
+static DataType cos_symmetric_real(DataType value)
+{
+	DataType result = cos(value);
+	return result;
+}
+static DataType cos_symmetric_derive(DataType steepness, DataType value)
+{
+	DataType result = -steepness * sin(steepness * value);
+	return result;
+}
+
+static DataType cos_real(DataType value)
+{
+	DataType result = cos(value) / 2.0f + 0.5f;
+	return result;
+}
+static DataType cos_derive(DataType steepness, DataType value)
+{
+	DataType result = -steepness * sin(steepness * value) / 2.0f;
+	return result;
+}
+
+
+class Connection;
+class Layer;
 
 class Neuro
 {
@@ -22,48 +153,52 @@ public:
 	Neuro& operator = (const Neuro& RHS);
 
 public:
-	void init();
+	void init(Layer* pLayer = nullptr);
+
+	void setWeight(std::vector<float>& values);
 
 public:
-	//DataType run(DataType* pVal)
-	//{
-	//	DataType result = 0.0;
-	//	DataType tmp = 1.0;
-	//	if (_inputNum <= 0)
-	//	{
-	//		return result;
-	//	} 
-	//	result = 0.0f;
-	//	
-	//	for (size_t j = 0; j < _inputNum; j++)
-	//	{
-	//		tmp = pVal[j];
-	//		result += tmp * (_weights[j]);
-	//	}
-	//	return result;
-	//} 
 
 	DataType run(std::shared_ptr<DataType[]> pVal);
 	
+	DataType getValue();
+
 	void updataWeight(std::shared_ptr<DataType[]> pVal, DataType diffVal, std::shared_ptr<DataType[]> varGrad, DataType learnRate);
 
 	void show(int index);
 
+	std::string toStr();
+
+	std::string toStrN();
+
+	void setOrder(float val);
+
+	int getOrder();
+
+	std::shared_ptr<Connection> getConnection(size_t index);
+
 private:
+	DataType calcuOutput(DataType value);
+	DataType calcuGrad(DataType diffVar, DataType value); 
+
+public:
+	int layerID;
+	int index;
+
+private:
+	float order;
+	bool ACTIVE;
+	DataType _value;
 	std::size_t _inputNum; 
-	std::shared_ptr<DataType[]> _weights;
-
-	//std::vector<DataType> _weights;
-
-	// DataType* _weights; 
-
-	std::size_t order;
+	std::size_t _type;
+	std::shared_ptr<DataType[]> _weights; 
+	std::vector<std::shared_ptr<Connection>> _pConnections;
 };
 
 
 class Layer {
 public:
-	Layer(int inNum, int outNum);
+	Layer(int inNum, int outNum, int id = 0);
 	virtual ~Layer();
 
 	Layer(const Layer& RHS);
@@ -71,21 +206,35 @@ public:
 	Layer& operator = (const Layer& RHS);
 
 public:
-	void init();
+	void init(Layer* pLayer = nullptr);
 
 	void clear();
+
+	int getID();
 
 	int getInputNum();
 
 	int getOutputNum();
 
+	int getConnectedLayerID();
+
+	void setConnectedLayerID(int index);
+
+	std::shared_ptr<Neuro> getNeuron(size_t index);
+
 	void show(int index);
+
+	std::string toStr();
 
 public:
 	void forward(std::shared_ptr<DataType[]> input, std::shared_ptr<DataType[]> output);
 
 	void backward(std::shared_ptr<DataType[]> input, std::shared_ptr<DataType[]> output_grad, std::shared_ptr<DataType[]> input_grad, float lr);
-private:
+
+private: 
+	int _id; 
+	int _connectLayerID;
+
 	int _inputNum;
 	int _outputNum;
 
@@ -95,6 +244,18 @@ private:
 };
 
 
+
+class Connection
+{
+public:
+	Connection() {}
+	~Connection() {}
+
+public:
+	DataType _weight;
+	std::shared_ptr<Neuro> _pInputNero;
+	std::shared_ptr<Neuro> _pOutputNero;
+};
 
 class NN {
 public:
@@ -107,69 +268,21 @@ public:
 
 	void init();
 
+	void clear();
+
 	void show();
 
+	void load(const char* fileName); 
+
+	void save(const char* fileName);
+
 public:
-  
+	bool isFinish();
+	void setFinish(bool state);
 
 public:
 	void train(float* input, float* y, float lr);
-	 
-	//void train( float* input, float* y, float lr) {
-	// 
-	//	Layer* inputLay = model[0]; 
-	//	Layer* outputLay = model[1];
-	//
-	//	int HIDDEN_SIZE = inputLay->getOutputNum();
-	//	int OUTPUT_SIZE = outputLay->getOutputNum();
-	//
-	//	float* hidden_output = new float[HIDDEN_SIZE]; 
-	//	float* final_output = new float[OUTPUT_SIZE];
-	//
-	//	float* output_grad = new float[OUTPUT_SIZE] { 0 };
-	//	float* hidden_grad = new float[HIDDEN_SIZE] { 0 };
-	//	 
-	//	 
-	//	// 前向传递：从输入层到隐藏层
-	//	inputLay->forward(input, hidden_output);
-	// 
-	//	// ReLU (Rectified Linear Unit)  
-	//	for (int i = 0; i < HIDDEN_SIZE; i++)
-	//	{
-	//		hidden_output[i] = hidden_output[i] > 0 ? hidden_output[i] : 0;  
-	//	}
-	// 
-	//	// 前向传递：从隐藏层到输出层
-	//	outputLay->forward( hidden_output, final_output);
-	//	//softmax(final_output, OUTPUT_SIZE);
-	//
-	//	// 计算输出梯度
-	//	for (int i = 0; i < OUTPUT_SIZE; i++)
-	//	{
-	//		float diff_val = final_output[i] - y[i];
-	//		output_grad[i] = 2.0f * diff_val;
-	//	}
-	//
-	//
-	//	// 反向传播：从输出层到隐藏层
-	//	outputLay->backward( hidden_output, output_grad, hidden_grad, lr);
-	//
-	//	// 通过 ReLU 激活函数反向传播
-	//	for (int i = 0; i < HIDDEN_SIZE; i++)
-	//	{
-	//		hidden_grad[i] *= hidden_output[i] > 0 ? 1 : 0;   
-	//	}
-	//
-	//
-	//	// 反向传播：从隐藏层到输入层
-	//	inputLay->backward( input, hidden_grad, NULL, lr); 
-	//
-	//	delete[] hidden_output;
-	//	delete[] final_output;
-	//	delete[] output_grad;
-	//	delete[] hidden_grad;
-	//}
-	 
+	  
 	void softmax(float* input, int size);
 	 
 	int predict(float* input);
@@ -177,6 +290,8 @@ private:
 	std::vector<Layer*> model;
 	std::vector<uint> topology; 
 	 
-	std::vector<std::shared_ptr<DataType[]>> _hidenData;
+	std::vector<std::shared_ptr<DataType[]>> _hidenData; 
+
+	bool _FINISH;
 };
 
