@@ -66,8 +66,21 @@ void NeuronNet::setModel(std::vector<uint> theTop)
 		for (size_t i = 0; i < out; i++)
 		{
 			std::shared_ptr<Neuron> pN = pLay->getNeuron(i);
-			pN->setWeight(weightVec);
+			pN->setWeight(weightVec);  
 		}
+
+
+		pLay = model[n - 1];
+		if (!pLay)
+		{
+			return;
+		}
+		out = pLay->getOutputNum();
+		for (size_t i = 0; i < out; i++)
+		{
+			std::shared_ptr<Neuron> pN = pLay->getNeuron(i);
+			pN->setOrder(1.0f);
+		} 
 	}
 	 
 	// Output Layer  
@@ -104,6 +117,15 @@ void NeuronNet::clear()
 
 	topology.clear();
 	return;
+}
+
+bool NeuronNet::isFinish()
+{
+	return _FINISH;
+}
+void NeuronNet::setFinish(bool state)
+{
+	_FINISH = state;
 }
 
 void NeuronNet::predict(float* input)
@@ -273,23 +295,24 @@ void NeuronNet::load(const char* fileName)
 		thefile >> data;
 		int inputNum = atoi(data);
 		thefile >> data;
-		int outputNum = atoi(data);
-		//thefile >> data;
-		//int connectedLayerID = atoi(data);
+		int outputNum = atoi(data); 
 
-		Layer* pLayer = model[i];
-		//pLayer->setConnectedLayerID(connectedLayerID);
+		Layer* pLayer = model[i]; 
 
 		for (int j = 0; j < outputNum; j++)
 		{
 			int connectedLayerID = 0;
+			int type = 1;
 
 			thefile >> data;
-			inputNum = atoi(data);
+			inputNum = atoi(data); 
+			thefile >> data;
+			type = atoi(data);
 			thefile >> data;
 			double val = std::stod(data);
 			std::shared_ptr<Neuron> pNeuron = pLayer->getNeuron(j);
 
+			pNeuron->setType(type);
 			pNeuron->setOrder(val);
 
 			std::vector<float>  weights;
@@ -323,8 +346,7 @@ void NeuronNet::load(const char* fileName)
 			pNeuron->setWeight(weights);
 		}
 	}
-
-
+	 
 	thefile.close();
 	return;
 }

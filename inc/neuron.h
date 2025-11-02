@@ -41,6 +41,8 @@ public:
 
 	int getOrder();
 
+	void setType(uint val);
+
 	std::string toStr();
 
 	/**

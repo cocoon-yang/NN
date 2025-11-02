@@ -11,7 +11,11 @@ public:
 	void setModel(std::vector<uint> theTop);
 
 	void init();
-	void clear();
+	void clear(); 
+
+	bool isFinish();
+	void setFinish(bool state);
+
 public:
 	void predict(float* input);
 	void train(float* input, float* y, float lr);

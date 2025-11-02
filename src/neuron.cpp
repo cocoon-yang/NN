@@ -170,9 +170,15 @@ int Neuron::getOrder()
 	return  order;
 }
 
+void Neuron::setType(uint val)
+{
+	_type = val;
+}
+
 std::string Neuron::toStr()
 {
-	std::string result = std::to_string(_inputNum) + " " + std::to_string(order) + " ";
+	std::string result = std::to_string(_inputNum) + " " + std::to_string(_type) + " "
+		+ std::to_string(order) + " ";
 	for (int j = 0; j < _inputNum; j++)
 	{
 		if (!ACTIVE)

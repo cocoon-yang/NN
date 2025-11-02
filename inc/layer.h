@@ -7,6 +7,10 @@ public:
 	Layer(int inNum, int outNum, int id);
 	virtual ~Layer();
 
+	Layer(const Layer& RHS);
+
+	Layer& operator = (const Layer& RHS);
+
 public:
 	void clear();
 

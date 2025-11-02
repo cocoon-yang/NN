@@ -11,6 +11,30 @@ Layer::~Layer()
 
 }
 
+Layer::Layer(const Layer& RHS)
+{
+	_id = RHS._id;  
+	_inputNum = RHS._inputNum;
+	_outputNum = RHS._outputNum;
+	 
+	//_pBiases = new DataType[_outputNum];
+	//memcpy_s(_pBiases, n * sizeof(DataType), RHS._pBiases, _outputNum * sizeof(DataType));
+}
+
+Layer& Layer::operator = (const Layer& RHS)
+{
+	if (this != &RHS)
+	{
+		_id = RHS._id;  
+		_inputNum = RHS._inputNum;
+		_outputNum = RHS._outputNum;
+		 
+		//_pBiases = new DataType[_outputNum];
+		//memcpy_s(_pBiases, n * sizeof(DataType), RHS._pBiases, _outputNum * sizeof(DataType));
+	}
+	return *this;
+}
+
 void Layer::clear()
 {
 
