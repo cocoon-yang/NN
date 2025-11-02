@@ -1,0 +1,29 @@
+#pragma once 
+#include "layer.h"
+
+class NeuronNet
+{ 
+public:
+	NeuronNet();
+	virtual ~NeuronNet();  
+
+public:
+	void setModel(std::vector<uint> theTop);
+
+	void init();
+	void clear();
+public:
+	void predict(float* input);
+	void train(float* input, float* y, float lr);
+
+	void load(const char* fileName);
+	void save(const char* fileName);
+	void show();
+private:
+	std::vector<Layer*> model;
+
+	std::vector<uint> topology; 
+
+	bool _FINISH;
+};
+
