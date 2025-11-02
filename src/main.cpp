@@ -10,7 +10,7 @@ void test()
 	float y[]{ 0.4f, 0.3f, 0.1f };
 
 	NeuronNet theNN;
-	theNN.setModel({ 1, 3, 3, 3, 1 });
+	theNN.setModel({ 1, 3, 1 });
 	//theNN.init();
 
 	theNN.show();
@@ -24,7 +24,7 @@ void test()
 	for (i = 1; i < 50; i++)
 	{
 		x[0] =   0.67; // *5 + 1.0;  // getRandVal(); // 
-		y[0] = 4.2 * x[0] * x[0] + 2.2 * x[0];
+		y[0] = 4.2 * x[0] * x[0]; //  +2.2 * x[0];
 
 		std::cout << std::endl;
 		std::cout << "    Iteration " << i << std::endl;

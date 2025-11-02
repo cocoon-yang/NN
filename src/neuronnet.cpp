@@ -70,17 +70,17 @@ void NeuronNet::setModel(std::vector<uint> theTop)
 		}
 
 
-		pLay = model[n - 1];
-		if (!pLay)
-		{
-			return;
-		}
-		out = pLay->getOutputNum();
-		for (size_t i = 0; i < out; i++)
-		{
-			std::shared_ptr<Neuron> pN = pLay->getNeuron(i);
-			pN->setOrder(1.0f);
-		} 
+		//pLay = model[n - 1];
+		//if (!pLay)
+		//{
+		//	return;
+		//}
+		//out = pLay->getOutputNum();
+		//for (size_t i = 0; i < out; i++)
+		//{
+		//	std::shared_ptr<Neuron> pN = pLay->getNeuron(i);
+		//	pN->setOrder(1.0f);
+		//} 
 	}
 	 
 	// Output Layer  
