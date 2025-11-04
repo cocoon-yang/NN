@@ -15,6 +15,8 @@ NeuronNet::~NeuronNet()
 
 void NeuronNet::setModel(std::vector<uint> theTop)
 {
+	clear();
+
 	topology = theTop;
 	size_t n = topology.size(); 
 	int in = 1;
@@ -244,7 +246,7 @@ void NeuronNet::train(float* input, float* y, float lr)
 		//  ReLU Method 
 		for (int i = 0; i < inputNum; i++)
 		{
-			input_Grad[i] *= fabs(input_Grad[i]) > 2.0f ? 0.0f : input_Grad[i];
+			input_Grad[i]  = fabs(input_Grad[i]) > 2.0f ? 0.0f : input_Grad[i];
 		}
 
 		pDiff.reset();
@@ -385,4 +387,35 @@ void NeuronNet::show()
 		pLay->show();
 	}
 	std::cout << std::endl;
+}  
+
+ 
+void NeuronNet::killConnection(uint layIndex, uint neuronIndex, uint connectionIndex)
+{
+	size_t n = model.size();
+	if (layIndex >= n)
+	{
+		return;
+	}
+	Layer* pLay = model[layIndex];
+	if (nullptr != pLay)
+	{
+		pLay->killConnection(neuronIndex, connectionIndex);
+	}
+	return;
+}
+
+void NeuronNet::activeConnection(uint layIndex, uint neuronIndex, uint connectionIndex)
+{
+	size_t n = model.size();
+	if (layIndex >= n)
+	{
+		return;
+	}
+	Layer* pLay = model[layIndex];
+	if (nullptr != pLay)
+	{
+		pLay->activeConnection(neuronIndex, connectionIndex);
+	}
+	return;
 }

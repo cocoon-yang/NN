@@ -22,7 +22,11 @@ public:
 
 	void load(const char* fileName);
 	void save(const char* fileName);
-	void show();
+	void show(); 
+	 
+	void killConnection(uint layNum, uint neuronIndex, uint connectionIndex);
+	void activeConnection(uint layNum, uint neuronIndex, uint connectionIndex);
+
 private:
 	std::vector<Layer*> model;
 

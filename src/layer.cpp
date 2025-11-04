@@ -149,8 +149,44 @@ void Layer::show()
 	std::cout << toStr() << std::endl;
 }
 
+void Layer::killConnection(uint neuronIndex, uint connectionIndex)
+{
+	if (neuronIndex >= _outputNum)
+	{
+		return;
+	}
+	std::shared_ptr<Neuron> pNeuron = _pNerons[neuronIndex];
+	if (!pNeuron)
+	{
+		return;
+	}
+	pNeuron->killConnection(connectionIndex);
+	return;
+}
+
+void Layer::activeConnection(uint neuronIndex, uint connectionIndex)
+{
+	if (neuronIndex >= _outputNum)
+	{
+		return;
+	}
+	std::shared_ptr<Neuron> pNeuron = _pNerons[neuronIndex];
+	if (!pNeuron)
+	{
+		return;
+	}
+	pNeuron->activeConnection(connectionIndex);
+	return;
+}
+
+
 void Layer::forward()
 {
+#ifdef _DEBUG_
+	std::cout << std::endl;
+	std::cout << "Layer " << _id << " forward():" << std::endl;
+#endif
+
 	for (int i = 0; i < _outputNum; i++) {
 		std::shared_ptr<Neuron> pNeuron = _pNerons[i];
 		if (!pNeuron)

@@ -3,7 +3,7 @@
 #include "layer.h"
 #include "string"
 
-Neuron::Neuron(int num):_value(0.0f), _inputNum(num), ACTIVE(true), order(0.0f), _type(1)
+Neuron::Neuron(int num):_value(0.0f), _inputNum(num), _ALIVE(true), order(0.0f), _type(1)
 {
 
 }
@@ -18,7 +18,7 @@ Neuron::Neuron(const Neuron& RHS)
 	_inputNum = RHS._inputNum;
 	order = RHS.order;
 	_type = RHS._type;
-	ACTIVE = RHS.ACTIVE;
+	_ALIVE = RHS._ALIVE;
 	_value = RHS._value;
 
 	_pConnections.clear();
@@ -34,7 +34,7 @@ Neuron& Neuron::operator = (const Neuron& RHS)
 		_inputNum = RHS._inputNum;
 		order = RHS.order;
 		_type = RHS._type;
-		ACTIVE = RHS.ACTIVE;
+		_ALIVE = RHS._ALIVE;
 		_value = RHS._value;
 
 		_pConnections.clear();
@@ -105,10 +105,15 @@ DataType Neuron::run()
 	// _value = 1.0;
 	DataType tmp = 0.0; 
 
-	if (!ACTIVE)
+	if (!_ALIVE)
 	{
 		return tmp;
 	}
+
+#ifdef _DEBUG_
+	std::cout << std::endl;
+	std::cout << "Neuro::run():" << std::endl;
+#endif
 
 	for (size_t j = 0; j < _inputNum; j++)
 	{
@@ -116,10 +121,17 @@ DataType Neuron::run()
 		{
 			continue;
 		}
+
+		// Overlap inactive Connections 
+		if (!(_pConnections[j]->ALIVE)) {
+			continue;
+		}
+
 		if(!(_pConnections[j]->_pInputNero))
 		{
 			continue;
 		}
+		 
 		DataType val = _pConnections[j]->_pInputNero->_value;
 		DataType w = _pConnections[j]->_weight;
 
@@ -127,7 +139,7 @@ DataType Neuron::run()
 		tmp += val * w;
 
 #ifdef _DEBUG_ 
-		std::cout << "        tmp += " << val << " * " << w << " = " << tmp << std::endl;
+		std::cout << "       var += " << val << " * " << w << " = " << tmp << std::endl;
 #endif
 	}
 	// Calculating the output value 
@@ -138,6 +150,12 @@ DataType Neuron::run()
 	else {
 		_value = calcuOutput(tmp); //  pow(tmp, order);
 	}
+
+#ifdef _DEBUG_ 
+	std::cout << "      result:" << _value << std::endl;
+	std::cout << std::endl;
+#endif
+
 	return _value;
 }
 
@@ -181,7 +199,7 @@ std::string Neuron::toStr()
 		+ std::to_string(order) + " ";
 	for (int j = 0; j < _inputNum; j++)
 	{
-		if (!ACTIVE)
+		if (!_ALIVE)
 		{
 			result = result + std::to_string(0.0) + " ";
 		}
@@ -214,6 +232,11 @@ void Neuron::updataWeight(DataType diffVal, std::shared_ptr<DataType[]> varGrad,
 		{
 			continue;
 		}
+		if (!_pConnections[j]->ALIVE)
+		{
+			continue;
+		}
+
 		if (!(_pConnections[j]->_pInputNero))
 		{
 			continue;
@@ -228,6 +251,15 @@ void Neuron::updataWeight(DataType diffVal, std::shared_ptr<DataType[]> varGrad,
 
 	for (int j = 0; j < _inputNum; j++)
 	{
+		if (!_pConnections[j])
+		{
+			continue;
+		}
+		if (!_pConnections[j]->ALIVE)
+		{
+			continue;
+		}
+
 		DataType tmp = 1.0;
 		tmp = calcuGrad(diffVal, pVal[j]);
 
@@ -236,42 +268,87 @@ void Neuron::updataWeight(DataType diffVal, std::shared_ptr<DataType[]> varGrad,
 		{
 			varGrad[j] += _pConnections[j]->_weight * tmp;
 		}
-
-
+		 
+		if (!_pConnections[j]->_pInputNero)
+		{
+			continue;
+		}
 		//tmp = calcuOutput(pVal[j]);
 		//_weights[j] -= learnRate * tmp * diffVal;
 		tmp = _pConnections[j]->_pInputNero->_value;
-
-
-
-
+		  
 		_pConnections[j]->_weight -= learnRate  * diffVal/ tmp;
 
+		tmp = _pConnections[j]->_weight;
 		if (fabs(tmp) > 1000.0)
 		{
-			ACTIVE = false;
+			_pConnections[j]->ALIVE = false;
+			_pConnections[j]->_weight = 0.0f; 
 		}
+
+		//if (fabs(tmp) < 0.001)
+		//{
+		//	_pConnections[j]->ALIVE = false;
+		//	_pConnections[j]->_weight = 0.0f;
+		//}
 	}
+
 	// DEBUG -- BEGIN -- 
 #ifdef _DEBUG_  
-	std::cout << "new weights:" << std::endl;
+	std::cout << " new weights:" << std::endl;
 	for (size_t i = 0; i < _inputNum; i++)
 	{
-		std::cout << _pConnections[i]->_weight << "  " << std::endl;
+		std::cout << "  " << _pConnections[i]->_weight << "  " << std::endl;
 	}
-	std::cout << "input_grad:" << std::endl;
+	std::cout << " input_grad:" << std::endl;
 	for (size_t i = 0; i < _inputNum; i++)
 	{
-		std::cout << varGrad[i] << "  " << std::endl;
+		std::cout << "  " << varGrad[i] << "  " << std::endl;
 	}
 	std::cout << std::endl;
 #endif 
 	//  DEBUG -- END --  
 }
 
+/**
+ * @brief Kill one connection of this Neuron 
+ * @param connectionIndex: uint, index of the connection  
+*/
+void Neuron::killConnection(uint connectionIndex)
+{
+	if (connectionIndex >= _inputNum)
+	{
+		return;
+	}
+	if (!_pConnections[connectionIndex])
+	{
+		return;
+	}
+	_pConnections[connectionIndex]->ALIVE = false;
+	return;
+}
 
 /**
-\brief Get one Connection pointer of the neuron
+ * @brief Active one connection of this Neuron
+ * @param connectionIndex: uint, index of the connection
+*/
+void Neuron::activeConnection(uint connectionIndex)
+{
+	if (connectionIndex >= _inputNum)
+	{
+		return;
+	}
+	if (!_pConnections[connectionIndex])
+	{
+		return;
+	}
+	_pConnections[connectionIndex]->ALIVE = true;
+	return;
+}
+
+/**
+\brief Get one Connection pointer of the neuron 
+ * @param index: uint, index of the connection
 */
 std::shared_ptr<Connection> Neuron::getConnection(size_t index)
 {

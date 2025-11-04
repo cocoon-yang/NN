@@ -4,6 +4,8 @@
 #include <cmath>
 #include "ass.h" 
 
+#define _DEBUG_  1 
+
 //typedef float DataType;
 //typedef unsigned int uint;
 
@@ -52,7 +54,9 @@ public:
 
 	void updataWeight(DataType diffVal, std::shared_ptr<DataType[]> varGrad, DataType learnRate);
 
+	void killConnection(uint connectionIndex);  
 
+	void activeConnection(uint connectionIndex);
 private:
 	DataType calcuOutput(DataType value);
 
@@ -63,7 +67,7 @@ public:
 	int index;
 
 private:
-	bool ACTIVE;
+	bool _ALIVE;
 
 	uint _type;
 

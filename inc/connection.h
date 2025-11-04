@@ -8,7 +8,8 @@ public:
 	Connection();
 	virtual ~Connection();
 
-public:
+public: 
+	bool ALIVE; 
 	DataType _weight;
 	std::shared_ptr<Neuron> _pInputNero;
 	std::shared_ptr<Neuron> _pOutputNero;

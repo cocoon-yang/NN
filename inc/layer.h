@@ -28,6 +28,8 @@ public:
 
 	void show();
 
+	void killConnection(uint neuronIndex, uint connectionIndex);
+	void activeConnection(uint neuronIndex, uint connectionIndex);
 public:
 	void forward( );
 	void backward(std::shared_ptr<DataType[]> output_grad, std::shared_ptr<DataType[]> input_grad, float lr);
