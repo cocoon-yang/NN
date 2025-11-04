@@ -11,7 +11,7 @@ y = 10.0 x
 
 ~~~
 	// Create a neural network model
-	NN theNN; 
+	NeuronNet theNN; 
 	
 	// Setting the topology of the network.
 	// Input variables number: 1 
