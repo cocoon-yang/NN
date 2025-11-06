@@ -4,7 +4,7 @@
 #include <cmath>
 #include "ass.h" 
 
-#define _DEBUG_  1 
+//#define _DEBUG_  1 
 
 //typedef float DataType;
 //typedef unsigned int uint;
@@ -12,7 +12,7 @@
 class Connection;
 class Layer;
 
-class Neuron
+class Neuron: public std::enable_shared_from_this<Neuron>
 {
 public:
 	Neuron(int num);
@@ -21,6 +21,8 @@ public:
 	Neuron(const Neuron& RHS);
 
 	Neuron& operator = (const Neuron& RHS);
+
+	std::shared_ptr<Neuron> getPtr();
 
 public:
 	void init(Layer* pLayer = nullptr);
@@ -46,6 +48,20 @@ public:
 	void setType(uint val);
 
 	std::string toStr();
+
+	uint getConnectionNum();
+
+	/**
+	 * @brief Adding a connection to this Neuron 
+	 * @param  
+	*/
+	void connectNeuron(std::shared_ptr<Neuron>);
+
+	/**
+	 * @brief Delete the connection to this Neuron
+	 * @param
+	*/
+	void disconnectNeuron(std::shared_ptr<Neuron>);
 
 	/**
 	\brief Get one Connection pointer of the neuron

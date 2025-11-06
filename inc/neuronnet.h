@@ -27,6 +27,9 @@ public:
 	void killConnection(uint layNum, uint neuronIndex, uint connectionIndex);
 	void activeConnection(uint layNum, uint neuronIndex, uint connectionIndex);
 
+	void activeRandConnection(uint num);
+
+	void setLayerOrder(uint layNum, float val);
 private:
 	std::vector<Layer*> model;
 

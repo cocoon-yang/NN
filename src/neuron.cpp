@@ -45,33 +45,76 @@ Neuron& Neuron::operator = (const Neuron& RHS)
 	return *this;
 }
 
+std::shared_ptr<Neuron> Neuron::getPtr()
+{
+	return shared_from_this();
+}
+
 void Neuron::init(Layer* pInputLayer)
 {
-	float scale = sqrtf(2.0f / _inputNum);
+	float scale = sqrtf(2.0f);
+	if (_inputNum > 0)
+	{ 
+		scale = sqrtf(2.0f / _inputNum);
+	} 
 
-	if (nullptr == pInputLayer)
+	if (0 == _pConnections.size())
 	{
-		_pConnections.clear();
+		// This is an EMPTY Neuron 
 		for (int i = 0; i < _inputNum; i++) {
 			std::shared_ptr<Connection> p = std::make_shared<Connection>();
 
 			float tmp = (getRandVal() - 0.5f) * 2 * scale;
 			p->_weight = tmp;
-			p->_pInputNero = nullptr;
-			_pConnections.push_back(p); 
-		}
-	}
-	else { 
-		_pConnections.clear();
-		for (int i = 0; i < _inputNum; i++) {
-			std::shared_ptr<Connection> p = std::make_shared<Connection>();
+			if (nullptr == pInputLayer)
+			{
+				p->_pInputNero = nullptr;
+			}
+			else { 
+				p->_pInputNero = pInputLayer->getNeuron(i); 
+			}
 
-			float tmp = (getRandVal() - 0.5f) * 2 * scale;
-			p->_weight = tmp;
-			p->_pInputNero = pInputLayer->getNeuron(i);
-			_pConnections.push_back(p); 
+			_pConnections.push_back(p);
 		}
 	}
+	else {
+		// This Neuron has been intialized, 
+		// we do NOT modify its connection, 
+		// only reset the weights.
+		for (int i = 0; i < _inputNum; i++) { 
+			std::shared_ptr<Connection> p = _pConnections[i];
+			if (!p)
+			{
+				float tmp = (getRandVal() - 0.5f) * 2 * scale; 
+				p->_weight = tmp;
+			} 
+		}
+	}
+
+
+	//if (nullptr == pInputLayer)
+	//{
+	//	_pConnections.clear();
+	//	for (int i = 0; i < _inputNum; i++) {
+	//		std::shared_ptr<Connection> p = std::make_shared<Connection>();
+
+	//		float tmp = (getRandVal() - 0.5f) * 2 * scale;
+	//		p->_weight = tmp; 
+	//		p->_pInputNero = nullptr;
+	//		_pConnections.push_back(p); 
+	//	}
+	//}
+	//else { 
+	//	_pConnections.clear();
+	//	for (int i = 0; i < _inputNum; i++) {
+	//		std::shared_ptr<Connection> p = std::make_shared<Connection>();
+
+	//		float tmp = (getRandVal() - 0.5f) * 2 * scale;
+	//		p->_weight = tmp;
+	//		p->_pInputNero = pInputLayer->getNeuron(i);
+	//		_pConnections.push_back(p); 
+	//	}
+	//}
 	return;
 }
 
@@ -193,6 +236,11 @@ void Neuron::setType(uint val)
 	_type = val;
 }
 
+/***
+Output Formate
+ inputNum | neuron type | order | 
+
+*/
 std::string Neuron::toStr()
 {
 	std::string result = std::to_string(_inputNum) + " " + std::to_string(_type) + " "
@@ -246,9 +294,7 @@ void Neuron::updataWeight(DataType diffVal, std::shared_ptr<DataType[]> varGrad,
 
 		pVal[j] = val;
 	} 
-
-
-
+	 
 	for (int j = 0; j < _inputNum; j++)
 	{
 		if (!_pConnections[j])
@@ -334,7 +380,9 @@ void Neuron::killConnection(uint connectionIndex)
 */
 void Neuron::activeConnection(uint connectionIndex)
 {
-	if (connectionIndex >= _inputNum)
+	uint n = _pConnections.size();
+
+	if (connectionIndex >= n)
 	{
 		return;
 	}
@@ -347,13 +395,84 @@ void Neuron::activeConnection(uint connectionIndex)
 }
 
 /**
+\brief Get the number of connections attached to the Neuron.
+*/
+uint Neuron::getConnectionNum()
+{
+	return _pConnections.size();
+}
+
+void Neuron::connectNeuron(std::shared_ptr<Neuron> pNeuron)
+{
+	if (!pNeuron)
+	{
+		return;
+	} 
+	size_t index = 0;
+	for (index = 0; index < _inputNum; index++)
+	{
+		if (!_pConnections[index])
+		{
+			continue;
+		}
+		if (pNeuron == _pConnections[index]->_pInputNero)
+		{
+			return;
+		}
+	}
+	std::shared_ptr<Connection> p = std::make_shared<Connection>();
+
+	float scale = sqrtf(2.0f);
+	if (_inputNum > 0)
+	{
+		scale = sqrtf(2.0f / _inputNum);
+	}
+
+	float tmp = (getRandVal() - 0.5f) * 2 * scale;
+	p->_weight = tmp;
+	p->_pInputNero = pNeuron;
+	p->_pOutputNero = getPtr();
+
+	_pConnections.push_back(p);
+	_inputNum = _pConnections.size();
+	return;
+}
+
+void Neuron::disconnectNeuron(std::shared_ptr<Neuron> pNeuron)
+{
+	if (!pNeuron)
+	{
+		return;
+	}
+	size_t index = 0;
+	for (index = 0; index < _inputNum; index++)
+	{
+		if (!_pConnections[index])
+		{
+			continue;
+		}
+		if (pNeuron == _pConnections[index]->_pInputNero)
+		{
+			//break;
+			swap(_pConnections[index], _pConnections[_inputNum - 1]);
+			_pConnections.pop_back();
+			break;
+		}
+	}
+	_inputNum = _pConnections.size();
+	return;
+}
+
+
+/**
 \brief Get one Connection pointer of the neuron 
  * @param index: uint, index of the connection
 */
 std::shared_ptr<Connection> Neuron::getConnection(size_t index)
 {
-	std::shared_ptr<Connection> p;
-	if (index < _inputNum)
+	std::shared_ptr<Connection> p; 
+	uint n = _pConnections.size();
+	if (index < n)
 	{
 		p = _pConnections[index];
 	}

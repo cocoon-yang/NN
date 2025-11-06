@@ -101,15 +101,16 @@ void Layer::init(Layer* pLayer)
 				continue;
 			}
 			p->init();
-			p->setOrder(i);
-			for (int j = 0; j < _inputNum; j++)
-			{
-				std::shared_ptr<Connection> pConnect = p->getConnection(j);
-				if (pConnect)
-				{
-					pConnect->_pOutputNero = p;
-				}
-			}
+			//p->setOrder(i);
+			//uint n = p->getConnectionNum();
+			//for (int j = 0; j < n; j++)
+			//{
+			//	std::shared_ptr<Connection> pConnect = p->getConnection(j);
+			//	if (pConnect)
+			//	{
+			//		pConnect->_pOutputNero = p;
+			//	}
+			//}
 		}
 	} 
 }
@@ -149,6 +150,18 @@ void Layer::show()
 	std::cout << toStr() << std::endl;
 }
 
+void Layer::setOrder(float val)
+{
+	for (int i = 0; i < _outputNum; i++) {
+		std::shared_ptr<Neuron> pNeuron = _pNerons[i];
+		if (!pNeuron)
+		{
+			continue;
+		}
+		pNeuron->setOrder(val);
+	}
+}
+
 void Layer::killConnection(uint neuronIndex, uint connectionIndex)
 {
 	if (neuronIndex >= _outputNum)
@@ -179,6 +192,32 @@ void Layer::activeConnection(uint neuronIndex, uint connectionIndex)
 	return;
 }
 
+
+void Layer::activeRandConnection(uint num)
+{
+	if (num >= _outputNum)
+	{
+		return;
+	}
+
+	for (int i = 0; i < _outputNum; i++) {
+		std::shared_ptr<Neuron> pNeuron = _pNerons[i];
+		if (!pNeuron)
+		{
+			continue;
+		}
+		uint n = pNeuron->getConnectionNum();
+		for (int j = 0; j < n; j++)
+		{
+			pNeuron->killConnection(j);
+		}
+		float tmp = getRandVal();
+		n = tmp * (n + 1);
+		pNeuron->activeConnection(n);
+	}
+	 
+	return;
+}
 
 void Layer::forward()
 {

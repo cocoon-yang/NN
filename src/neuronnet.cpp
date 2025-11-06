@@ -32,8 +32,13 @@ void NeuronNet::setModel(std::vector<uint> theTop)
 	pLay->init(); 
 	for (size_t i = 0; i < out; i++)
 	{
-		std::shared_ptr<Neuron> pN = pLay->getNeuron(i);
+		std::shared_ptr<Neuron> pN = pLay->getNeuron(i); 
+		if (!pN)
+		{
+			continue;
+		}
 		pN->setWeight(weightVec);
+		pN->setOrder(0.0f);
 	} 
 	model.push_back(pLay);
 
@@ -70,32 +75,45 @@ void NeuronNet::setModel(std::vector<uint> theTop)
 			std::shared_ptr<Neuron> pN = pLay->getNeuron(i);
 			pN->setWeight(weightVec);  
 		}
+	} 
 
-
-		//pLay = model[n - 1];
-		//if (!pLay)
-		//{
-		//	return;
-		//}
-		//out = pLay->getOutputNum();
-		//for (size_t i = 0; i < out; i++)
-		//{
-		//	std::shared_ptr<Neuron> pN = pLay->getNeuron(i);
-		//	pN->setOrder(1.0f);
-		//} 
-	}
-	 
-	// Output Layer  
-
+	//for (size_t i = 0; i < out; i++)
+	//{
+	//	std::shared_ptr<Neuron> pN = pLay->getNeuron(i);
+	//	if (!pN)
+	//	{
+	//		continue;
+	//	}
+	//	pN->setWeight(weightVec);
+	//}
 }
 
 void NeuronNet::init()
 {
 	_FINISH = false;
 	size_t n = model.size();
-	for (size_t i = 0; i < n; i++)
+	if (n <= 2)
 	{
-		Layer* pLay = model[i];
+		return;
+	}
+
+	// Input Layer  
+	int out = topology[0];
+	Layer* pLay = model[0];
+	if (pLay)
+	{
+		return;
+	}
+
+	std::vector<float> weightVec;
+	for (size_t i = 0; i < out; i++)
+	{
+		weightVec.push_back(1.0f);
+	}
+
+	for (size_t i = 1; i < n; i++)
+	{
+		pLay = model[i];
 		if (pLay)
 		{
 			pLay->init();
@@ -175,6 +193,13 @@ void NeuronNet::train(float* input, float* y, float lr)
 	{
 		return;
 	}
+
+	//// DEBUG -- BEGIN --  
+    std::cout << std::endl; 
+	std::cout << "Train:" << std::endl;
+	//// DEBUG -- END --  
+
+	float diffSum = 0.0f;
 	bool OK = true;
 	std::shared_ptr<DataType[]> pDiff = std::shared_ptr<DataType[]>(new DataType[OUTPUT_SIZE]);
 	for (size_t i = 0; i < OUTPUT_SIZE; i++)
@@ -187,17 +212,24 @@ void NeuronNet::train(float* input, float* y, float lr)
 		}
 		float tmp = pNeuron->getValue();
 		pDiff[i] = 2.0f * (tmp - y[i]);
+		diffSum += pDiff[i];
+
+		//// DEBUG -- BEGIN --  
+		std::cout << "     Y[" << i <<"]: " << y[i] << std::endl; 
+		std::cout << "  pred[" << i << "]: " << tmp << std::endl; 
+		std::cout << "  Diff[" << i << "]: " << pDiff[i] << std::endl;
+		//// DEBUG -- END --  
+
 		if (fabs(pDiff[i]) > 100.0f)
 		{
 			OK = false;
 			break;
 		}
+
 	}
 
 
-	//// DEBUG -- BEGIN --  
-	//std::cout << std::endl;
-	std::cout << "Train:" << std::endl;
+
 	//std::cout << " Y:" << std::endl;
 	//for (size_t i = 0; i < OUTPUT_SIZE; i++)
 	//{
@@ -209,14 +241,9 @@ void NeuronNet::train(float* input, float* y, float lr)
 	//	std::cout << "  " << pY_bar[i] << " " << std::endl;
 	//} 
 
-	float diffSum = 0.0f;
-	std::cout << " Diff:" << std::endl;
-	for (size_t i = 0; i < OUTPUT_SIZE; i++)
-	{
-		std::cout << "  " << pDiff[i] << " " << std::endl;
-		diffSum += pDiff[i];
-	}
 
+ 
+	//// DEBUG -- BEGIN --  
 	if (fabs(diffSum) < 0.01)
 	{
 		std::cout << "  Sum of the errors: " << diffSum << " " << std::endl;
@@ -357,7 +384,7 @@ void NeuronNet::save(const char* fileName)
 { 
 	std::ofstream myfile;
 	myfile.open(fileName);
-	myfile << "Writing this to a file.\n";
+	myfile << "NuronNetwork 2025/11/05 Version 0.1.1\n";
 
 	size_t n = model.size();
 	myfile << n << std::endl;
@@ -384,6 +411,10 @@ void NeuronNet::show()
 	for (size_t i = 0; i < n; i++)
 	{
 		Layer* pLay = model[i];
+		if (nullptr == pLay)
+		{
+			continue;
+		}
 		pLay->show();
 	}
 	std::cout << std::endl;
@@ -416,6 +447,39 @@ void NeuronNet::activeConnection(uint layIndex, uint neuronIndex, uint connectio
 	if (nullptr != pLay)
 	{
 		pLay->activeConnection(neuronIndex, connectionIndex);
+	}
+	return;
+}
+
+void NeuronNet::activeRandConnection(uint num)
+{
+	size_t n = model.size();
+	//if (layIndex >= n)
+	//{
+	//	return;
+	//}
+	for (size_t i = 0; i < n; i++)
+	{
+		Layer* pLay = model[i];
+		if (nullptr != pLay)
+		{
+			pLay->activeRandConnection(num);
+		}
+	} 
+	return;
+}
+
+void NeuronNet::setLayerOrder(uint layIndex, float val)
+{
+	size_t n = model.size();
+	if (layIndex >= n)
+	{
+		return;
+	} 
+	Layer* pLay = model[layIndex];
+	if (nullptr != pLay)
+	{
+		pLay->setOrder(val);
 	}
 	return;
 }

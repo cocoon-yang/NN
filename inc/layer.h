@@ -25,17 +25,25 @@ public:
 	std::shared_ptr<Neuron> getNeuron(size_t index);
 
 	std::string toStr();
-
+	 
 	void show();
+
+	void setOrder(float val);
 
 	void killConnection(uint neuronIndex, uint connectionIndex);
 	void activeConnection(uint neuronIndex, uint connectionIndex);
+
+	/**
+	 * @brief Active selected connections of the Neuron only.  
+	 * @param num: uint, the number of the selected connections.
+	*/
+	void activeRandConnection(uint num);
+
 public:
 	void forward( );
 	void backward(std::shared_ptr<DataType[]> output_grad, std::shared_ptr<DataType[]> input_grad, float lr);
 	//void backward( std::shared_ptr<DataType[]> output_grad, std::shared_ptr<DataType[]> input_grad, float lr);
-
-
+	 
 private:
 	int _id;
 
