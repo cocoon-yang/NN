@@ -41,6 +41,10 @@ public:
 
 	void setValue(DataType val);
 
+	DataType getBias();
+
+	void setBias(DataType val);
+
 	void setOrder(float val);
 
 	int getOrder();
@@ -91,6 +95,7 @@ private:
 
 	DataType _value;
 	uint _inputNum;
+	DataType _bias;
 
 	std::vector<std::shared_ptr<Connection>> _pConnections;
 };

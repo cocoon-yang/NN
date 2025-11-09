@@ -338,11 +338,14 @@ void NeuronNet::load(const char* fileName)
 			thefile >> data;
 			type = atoi(data);
 			thefile >> data;
-			double val = std::stod(data);
+			double val = std::stod(data); 
+			thefile >> data;
+			double bias = std::stod(data);
 			std::shared_ptr<Neuron> pNeuron = pLayer->getNeuron(j);
 
 			pNeuron->setType(type);
 			pNeuron->setOrder(val);
+			pNeuron->setBias(bias);
 
 			std::vector<float>  weights;
 			for (int k = 0; k < inputNum; k++)

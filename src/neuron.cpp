@@ -3,7 +3,7 @@
 #include "layer.h"
 #include "string"
 
-Neuron::Neuron(int num):_value(0.0f), _inputNum(num), _ALIVE(true), order(0.0f), _type(1)
+Neuron::Neuron(int num):_value(0.0f), _bias(0.0f), _inputNum(num), _ALIVE(true), order(0.0f), _type(1)
 {
 
 }
@@ -20,6 +20,7 @@ Neuron::Neuron(const Neuron& RHS)
 	_type = RHS._type;
 	_ALIVE = RHS._ALIVE;
 	_value = RHS._value;
+	_bias = RHS._bias;
 
 	_pConnections.clear();
 	for (std::size_t i = 0; i < _inputNum; i++) {
@@ -36,6 +37,7 @@ Neuron& Neuron::operator = (const Neuron& RHS)
 		_type = RHS._type;
 		_ALIVE = RHS._ALIVE;
 		_value = RHS._value;
+		_bias = RHS._bias;
 
 		_pConnections.clear();
 		for (std::size_t i = 0; i < _inputNum; i++) {
@@ -57,6 +59,7 @@ void Neuron::init(Layer* pInputLayer)
 	{ 
 		scale = sqrtf(2.0f / _inputNum);
 	} 
+	_bias = (getRandVal() - 0.5f) * 2 * scale;;
 
 	if (0 == _pConnections.size())
 	{
@@ -138,6 +141,84 @@ void Neuron::setWeight(std::vector<float>& values)
 	} 
 } 
 
+/**
+\brief Get the output of the neuron
+*/
+DataType Neuron::getValue()
+{
+	return _value;
+}
+
+void Neuron::setValue(DataType val)
+{
+	_value = val;
+}
+
+DataType Neuron::getBias()
+{
+	return _bias;
+}
+
+void Neuron::setBias(DataType val)
+{
+	_bias = val;
+}
+
+void Neuron::setOrder(float val)
+{
+	if (val < 0)
+	{
+		return;
+	}
+
+	order = val * 1.0;
+}
+
+int Neuron::getOrder()
+{
+	return  order;
+}
+
+void Neuron::setType(uint val)
+{
+	_type = val;
+}
+
+/***
+Output Formate
+ inputNum | neuron type | order | bias | 
+ weight_i | InputNeuron_layer_id | InputNeuron_id | 
+ ... 
+*/
+std::string Neuron::toStr()
+{
+	std::string result = std::to_string(_inputNum) + " " + std::to_string(_type) + " "
+		+ std::to_string(order) + " " + std::to_string(_bias) + " ";
+	for (int j = 0; j < _inputNum; j++)
+	{
+		if (!_ALIVE)
+		{
+			result = result + std::to_string(0.0) + " ";
+		}
+		else {
+			result = result + std::to_string(_pConnections[j]->_weight) + " ";
+			std::shared_ptr<Neuron> pIn = _pConnections[j]->_pInputNero;
+			if (pIn)
+			{
+				result = result + std::to_string(pIn->layerID) + " ";
+				result = result + std::to_string(pIn->index) + " ";
+			}
+			else {
+				result = result + std::to_string(-1) + " ";
+				result = result + std::to_string(-1) + " ";
+			}
+		}
+	}
+	result = result + "\n";
+
+	return result;
+}
+
 
 /**
 \brief Calculate the output of the neuron
@@ -157,6 +238,8 @@ DataType Neuron::run()
 	std::cout << std::endl;
 	std::cout << "Neuro::run():" << std::endl;
 #endif
+
+	tmp = _bias;
 
 	for (size_t j = 0; j < _inputNum; j++)
 	{
@@ -202,73 +285,6 @@ DataType Neuron::run()
 	return _value;
 }
 
-
-/**
-\brief Get the output of the neuron
-*/
-DataType Neuron::getValue()
-{
-	return _value;
-} 
-
-void Neuron::setValue(DataType val)
-{
-	_value = val;
-}
-
-void Neuron::setOrder(float val)
-{
-	if (val < 0)
-	{
-		return;
-	}
-
-	order = val * 1.0;
-}
-
-int Neuron::getOrder()
-{
-	return  order;
-}
-
-void Neuron::setType(uint val)
-{
-	_type = val;
-}
-
-/***
-Output Formate
- inputNum | neuron type | order | 
-
-*/
-std::string Neuron::toStr()
-{
-	std::string result = std::to_string(_inputNum) + " " + std::to_string(_type) + " "
-		+ std::to_string(order) + " ";
-	for (int j = 0; j < _inputNum; j++)
-	{
-		if (!_ALIVE)
-		{
-			result = result + std::to_string(0.0) + " ";
-		}
-		else {
-			result = result + std::to_string(_pConnections[j]->_weight) + " ";
-			std::shared_ptr<Neuron> pIn = _pConnections[j]->_pInputNero;
-			if (pIn)
-			{
-				result = result + std::to_string(pIn->layerID) + " ";
-				result = result + std::to_string(pIn->index) + " ";
-			}
-			else {
-				result = result + std::to_string(-1) + " ";
-				result = result + std::to_string(-1) + " ";
-			}
-		}
-	}
-	result = result + "\n";
-
-	return result;
-}
 
 void Neuron::updataWeight(DataType diffVal, std::shared_ptr<DataType[]> varGrad, DataType learnRate)
 {
@@ -319,11 +335,17 @@ void Neuron::updataWeight(DataType diffVal, std::shared_ptr<DataType[]> varGrad,
 		{
 			continue;
 		}
+
+		// Gradient of the ERROR 
+		DataType errorGrad = learnRate * diffVal;
+
+		_bias -= errorGrad;
+
 		//tmp = calcuOutput(pVal[j]);
 		//_weights[j] -= learnRate * tmp * diffVal;
 		tmp = _pConnections[j]->_pInputNero->_value;
 		  
-		_pConnections[j]->_weight -= learnRate  * diffVal/ tmp;
+		_pConnections[j]->_weight -= learnRate  * diffVal * tmp;
 
 		tmp = _pConnections[j]->_weight;
 		if (fabs(tmp) > 1000.0)
@@ -341,6 +363,7 @@ void Neuron::updataWeight(DataType diffVal, std::shared_ptr<DataType[]> varGrad,
 
 	// DEBUG -- BEGIN -- 
 #ifdef _DEBUG_  
+	std::cout << " bias:" << _bias << std::endl;
 	std::cout << " new weights:" << std::endl;
 	for (size_t i = 0; i < _inputNum; i++)
 	{
