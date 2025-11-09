@@ -268,6 +268,9 @@ DataType Neuron::run()
 		std::cout << "       var += " << val << " * " << w << " = " << tmp << std::endl;
 #endif
 	}
+
+	tmp += _bias;
+
 	// Calculating the output value 
 	if (0.0 == order)
 	{
