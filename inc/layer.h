@@ -41,17 +41,14 @@ public:
 
 public:
 	void forward( );
-	void backward(std::shared_ptr<DataType[]> output_grad, std::shared_ptr<DataType[]> input_grad, float lr);
-	//void backward( std::shared_ptr<DataType[]> output_grad, std::shared_ptr<DataType[]> input_grad, float lr);
+	void backward(std::shared_ptr<DataType[]> output_grad, std::shared_ptr<DataType[]> input_grad, float lr); 
 	 
 private:
 	int _id;
 
 	int _inputNum;
 	int _outputNum;
-
-	//DataType* _pWeights;
-	//DataType* _pBiases;
+	 
 	std::vector<std::shared_ptr<Neuron>> _pNerons;
 };
 

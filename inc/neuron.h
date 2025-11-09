@@ -4,10 +4,7 @@
 #include <cmath>
 #include "ass.h" 
 
-//#define _DEBUG_  1 
-
-//typedef float DataType;
-//typedef unsigned int uint;
+//#define _DEBUG_  1   
 
 class Connection;
 class Layer;
@@ -78,12 +75,19 @@ public:
 
 	void activeConnection(uint connectionIndex);
 private:
-	DataType calcuOutput(DataType value);
+	DataType calcuOutput(DataType var);
 
-	DataType calcuGrad(DataType diffVar, DataType value);
+	DataType calcuGrad(DataType steepness, DataType var);
 
 public:
-	int layerID;
+	/**
+	\brief The id of the layer to which the neron belongs
+	*/
+	int layerID; 
+
+	/**
+	\brief The index of the neron in the layer.
+	*/
 	int index;
 
 private:

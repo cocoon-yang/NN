@@ -37,7 +37,6 @@ Layer& Layer::operator = (const Layer& RHS)
 
 void Layer::clear()
 {
-
 }
 
 
@@ -245,8 +244,6 @@ void Layer::backward(std::shared_ptr<DataType[]> output_grad, std::shared_ptr<Da
 		{
 			continue;
 		}
-		pNeuron->updataWeight( output_grad[i], input_grad, lr);
-
-		//_pBiases[i] -= lr * output_grad[i];
+		pNeuron->updataWeight( output_grad[i], input_grad, lr); 
 	}
 }
