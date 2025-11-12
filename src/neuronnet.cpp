@@ -217,15 +217,15 @@ void NeuronNet::train(float* input, float* y, float lr)
 		//// DEBUG -- BEGIN --  
 		std::cout << "     Y[" << i <<"]: " << y[i] << std::endl; 
 		std::cout << "  pred[" << i << "]: " << tmp << std::endl; 
-		std::cout << "  Diff[" << i << "]: " << pDiff[i] << std::endl;
+		std::cout << "  Diff[" << i << "]: " << pDiff[i] << std::endl; 
+		std::cout << std::endl;
 		//// DEBUG -- END --  
 
 		if (fabs(pDiff[i]) > 100.0f)
 		{
 			OK = false;
 			break;
-		}
-
+		} 
 	}
 
 
@@ -255,12 +255,17 @@ void NeuronNet::train(float* input, float* y, float lr)
 
 
 	for (int i = (int)m - 1; i > 0; i--)
-	{
+	{ 
 		pLayer = model[i];
 		if (!pLayer)
 		{
 			return;
 		}
+
+#ifdef _DEBUG_ 
+		std::cout << " Layer " << i << std::endl;
+#endif
+
 		int inputNum = pLayer->getInputNum();
 		std::shared_ptr<DataType[]> input_Grad = std::shared_ptr<DataType[]>(new DataType[inputNum]);
 		for (int i = 0; i < inputNum; i++)
@@ -485,4 +490,63 @@ void NeuronNet::setLayerOrder(uint layIndex, float val)
 		pLay->setOrder(val);
 	}
 	return;
+} 
+
+void NeuronNet::setNeuronOrder(uint layIndex, uint neuronIndex, float val)
+{
+	size_t n = model.size();
+	if (layIndex >= n)
+	{
+		return;
+	}
+	Layer* pLay = model[layIndex];
+	if (nullptr == pLay)
+	{
+		return;
+	}
+
+	n = pLay->getOutputNum();
+	if (neuronIndex >= n)
+	{
+		return;
+	} 
+	std::shared_ptr<Neuron> pNeuron = pLay->getNeuron(neuronIndex); 
+	if (nullptr == pNeuron)
+	{
+		return;
+	}
+	pNeuron->setOrder(val); 
+	return;
+} 
+
+void NeuronNet::setWeight(uint layIndex, uint neuronIndex, uint connectionIndex, float val)
+{
+	size_t n = model.size();
+	if (layIndex >= n)
+	{
+		std::cout << "NeuronNet::setWeight(): Layer Index: " << layIndex << " overflow." << std::endl;
+		return;
+	}
+	Layer* pLay = model[layIndex];
+	if (nullptr == pLay)
+	{
+		std::cout << "NeuronNet::setWeight(): Invalid Layer." << std::endl;
+		return;
+	}
+
+	n = pLay->getOutputNum();
+	if (neuronIndex >= n)
+	{
+		std::cout << "NeuronNet::setWeight(): Neuron Index: " << neuronIndex << " overflow." << std::endl;
+		return;
+	}
+	std::shared_ptr<Neuron> pNeuron = pLay->getNeuron(neuronIndex);
+	if (nullptr == pNeuron)
+	{
+		std::cout << "NeuronNet::setWeight(): Invalid Neuron." << std::endl;
+		return;
+	}
+
+	pNeuron->setWeight(connectionIndex, val);
+	return; 
 }

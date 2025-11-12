@@ -24,12 +24,15 @@ public:
 	void save(const char* fileName);
 	void show(); 
 	 
-	void killConnection(uint layNum, uint neuronIndex, uint connectionIndex);
-	void activeConnection(uint layNum, uint neuronIndex, uint connectionIndex);
+	void killConnection(uint layIndex, uint neuronIndex, uint connectionIndex);
+	void activeConnection(uint layIndex, uint neuronIndex, uint connectionIndex);
 
 	void activeRandConnection(uint num);
 
-	void setLayerOrder(uint layNum, float val);
+	void setLayerOrder(uint layIndex, float val);
+	void setNeuronOrder(uint layIndex, uint neuronIndex, float val);
+
+	void setWeight(uint layIndex, uint neuronIndex, uint connectionIndex, float val);
 private:
 	std::vector<Layer*> model;
 

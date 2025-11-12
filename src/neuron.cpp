@@ -52,13 +52,13 @@ std::shared_ptr<Neuron> Neuron::getPtr()
 }
 
 void Neuron::init(Layer* pInputLayer)
-{
+{  
 	float scale = sqrtf(2.0f);
 	if (_inputNum > 0)
 	{ 
 		scale = sqrtf(2.0f / _inputNum);
 	} 
-	_bias = (getRandVal() - 0.5f) * 2 * scale;;
+	_bias = 0.0f; // (getRandVal() - 0.5f) * 2 * scale;;
 
 	if (0 == _pConnections.size())
 	{
@@ -136,9 +136,31 @@ void Neuron::setWeight(std::vector<float>& values)
 
 	for (int i = 0; i < _inputNum; i++) {
 		float tmp = values[i];
-		_pConnections[i]->_weight = tmp;
+		if (nullptr != _pConnections[i])
+		{
+			_pConnections[i]->_weight = tmp;
+		} 
 	} 
 } 
+
+void Neuron::setWeight(uint connectionIndex, DataType val)
+{
+	uint n = _pConnections.size();
+
+	if (connectionIndex >= n)
+	{
+		std::cout << "Neuron::setWeight(): Connection Index: " << connectionIndex << " overflow." << std::endl;
+		return; 
+	}
+	std::shared_ptr<Connection> pCon = _pConnections[connectionIndex];
+	if (nullptr == pCon)
+	{
+		std::cout << "Neuron::setWeight(): Invalid Connection." << std::endl;
+		return;
+	}
+	pCon->_weight = val;
+	return;
+}
 
 /**
 \brief Get the output of the neuron
@@ -299,7 +321,7 @@ void Neuron::updataWeight(DataType diffVal, std::shared_ptr<DataType[]> varGrad,
 	std::cout << std::endl;
 	std::cout << "  Neuron::updataWeight() "   << std::endl;
 #endif
-
+	
 	std::shared_ptr<DataType[]> pVal = std::shared_ptr<DataType[]>(new DataType[_inputNum]);
 
 	for (size_t j = 0; j < _inputNum; j++)
@@ -323,6 +345,19 @@ void Neuron::updataWeight(DataType diffVal, std::shared_ptr<DataType[]> varGrad,
 		pVal[j] = val;
 	} 
 	 
+	// Gradient of the ERROR 
+	DataType errorGrad = learnRate * diffVal;
+
+#ifdef _DEBUG_ 
+	std::cout << "   Error Gradient: " << errorGrad << std::endl;
+#endif
+
+	_bias -= errorGrad;
+
+	//
+	std::cout << " bias: " << _bias << std::endl;
+	//
+  
 	for (int j = 0; j < _inputNum; j++)
 	{
 		if (!_pConnections[j])
@@ -349,14 +384,10 @@ void Neuron::updataWeight(DataType diffVal, std::shared_ptr<DataType[]> varGrad,
 			continue;
 		}
 
-		// Gradient of the ERROR 
-		DataType errorGrad = learnRate * diffVal;
 
-#ifdef _DEBUG_ 
-		std::cout << "   Error Gradient: " << errorGrad << std::endl;
-#endif
-		 
-		_bias -= errorGrad;
+
+
+  
 
 		//tmp = calcuOutput(pVal[j]);
 		//_weights[j] -= learnRate * tmp * diffVal;
@@ -377,6 +408,8 @@ void Neuron::updataWeight(DataType diffVal, std::shared_ptr<DataType[]> varGrad,
 		//	_pConnections[j]->_weight = 0.0f;
 		//}
 	}
+
+
 
 	// DEBUG -- BEGIN -- 
 #ifdef _DEBUG_  

@@ -25,6 +25,7 @@ public:
 	void init(Layer* pLayer = nullptr);
 	void setWeight(std::vector<float>& values);
 
+	void setWeight(uint connectionIndex, DataType val);
 	/**
 	\brief Calculate the output of the neuron
 	@param[in] pVal: input variable vector
@@ -69,11 +70,12 @@ public:
 	*/
 	std::shared_ptr<Connection> getConnection(size_t index);
 
-	void updataWeight(DataType diffVal, std::shared_ptr<DataType[]> varGrad, DataType learnRate);
-
-	void killConnection(uint connectionIndex);  
+	void killConnection(uint connectionIndex);
 
 	void activeConnection(uint connectionIndex);
+
+	void updataWeight(DataType diffVal, std::shared_ptr<DataType[]> varGrad, DataType learnRate);
+
 private:
 	DataType calcuOutput(DataType var);
 
@@ -101,6 +103,7 @@ private:
 	uint _inputNum;
 	DataType _bias;
 
-	std::vector<std::shared_ptr<Connection>> _pConnections;
+	std::vector<std::shared_ptr<Connection>> _pConnections; 
+
 };
 
