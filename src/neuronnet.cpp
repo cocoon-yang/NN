@@ -244,7 +244,7 @@ void NeuronNet::train(float* input, float* y, float lr)
 
  
 	//// DEBUG -- BEGIN --  
-	if (fabs(diffSum) < 0.01)
+	if (fabs(diffSum) < 0.001)
 	{
 		std::cout << "  Sum of the errors: " << diffSum << " " << std::endl;
 		std::cout << "    " << std::endl;

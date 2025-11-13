@@ -52,7 +52,7 @@ std::shared_ptr<Neuron> Neuron::getPtr()
 }
 
 void Neuron::init(Layer* pInputLayer)
-{  
+{ 
 	float scale = sqrtf(2.0f);
 	if (_inputNum > 0)
 	{ 
@@ -321,7 +321,7 @@ void Neuron::updataWeight(DataType diffVal, std::shared_ptr<DataType[]> varGrad,
 	std::cout << std::endl;
 	std::cout << "  Neuron::updataWeight() "   << std::endl;
 #endif
-	
+  
 	std::shared_ptr<DataType[]> pVal = std::shared_ptr<DataType[]>(new DataType[_inputNum]);
 
 	for (size_t j = 0; j < _inputNum; j++)
@@ -354,10 +354,16 @@ void Neuron::updataWeight(DataType diffVal, std::shared_ptr<DataType[]> varGrad,
 
 	_bias -= errorGrad;
 
-	//
-	std::cout << " bias: " << _bias << std::endl;
-	//
-  
+	//std::cout << " bias: " << _bias << std::endl;
+	//std::cout << "   AZ: " << AZ << std::endl;
+	//std::cout << "   XZ: " << XZ << std::endl;
+
+	//if (2 == _iteration)
+	//{  
+	//	_bias = XZ; 
+	//}
+
+
 	for (int j = 0; j < _inputNum; j++)
 	{
 		if (!_pConnections[j])

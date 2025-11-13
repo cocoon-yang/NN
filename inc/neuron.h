@@ -104,6 +104,5 @@ private:
 	DataType _bias;
 
 	std::vector<std::shared_ptr<Connection>> _pConnections; 
-
 };
 
