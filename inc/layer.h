@@ -20,7 +20,7 @@ public:
 
 	int getOutputNum();
 
-	void init(Layer* pLayer = nullptr);
+	void init(std::shared_ptr<Layer> pLayer = nullptr);
 
 	std::shared_ptr<Neuron> getNeuron(size_t index);
 

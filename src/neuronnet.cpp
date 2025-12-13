@@ -4,13 +4,11 @@
 #include <fstream> 
 
 NeuronNet::NeuronNet():_FINISH(false)
-{
-
+{ 
 } 
 
 NeuronNet::~NeuronNet()
-{
-
+{ 
 } 
 
 void NeuronNet::setModel(std::vector<uint> theTop)
@@ -28,7 +26,14 @@ void NeuronNet::setModel(std::vector<uint> theTop)
 	{
 		weightVec.push_back(1.0f);
 	}
-	Layer* pLay = new Layer(1, out, 0);
+
+	std::shared_ptr<Layer> pLay = std::make_shared<Layer>(1, out, 0 );
+
+	//Layer* pLay = new Layer(1, out, 0);
+	if (nullptr == pLay)
+	{
+		return;
+	}
 	pLay->init(); 
 	for (size_t i = 0; i < out; i++)
 	{
@@ -40,27 +45,31 @@ void NeuronNet::setModel(std::vector<uint> theTop)
 		pN->setWeight(weightVec);
 		pN->setOrder(0.0f);
 	} 
-	model.push_back(pLay);
+	_model.push_back(pLay);
 
 	for (size_t i = 1; i < n; i++)
 	{
 		in = topology[i-1];
 		out = topology[i];
-		pLay = new Layer(in, out, i);
+		pLay = std::make_shared<Layer>(in, out, i); // new Layer(in, out, i);
+		if (nullptr == pLay)
+		{
+			continue;
+		}
 		if (i > 0)
 		{
-			Layer* pInLay = model[i - 1];
+			std::shared_ptr<Layer> pInLay = _model[i - 1];
 			pLay->init(pInLay);
 		}
 		else {
 			pLay->init();
 		} 
-		model.push_back(pLay);
+		_model.push_back(pLay);
 	}
 
 	if (n > 2)
 	{
-		pLay = model[1];
+		pLay = _model[1];
 		if (!pLay)
 		{
 			return;
@@ -91,7 +100,7 @@ void NeuronNet::setModel(std::vector<uint> theTop)
 void NeuronNet::init()
 {
 	_FINISH = false;
-	size_t n = model.size();
+	size_t n = _model.size();
 	if (n <= 2)
 	{
 		return;
@@ -99,7 +108,7 @@ void NeuronNet::init()
 
 	// Input Layer  
 	int out = topology[0];
-	Layer* pLay = model[0];
+	std::shared_ptr<Layer> pLay = _model[0];
 	if (pLay)
 	{
 		return;
@@ -113,7 +122,7 @@ void NeuronNet::init()
 
 	for (size_t i = 1; i < n; i++)
 	{
-		pLay = model[i];
+		pLay = _model[i];
 		if (pLay)
 		{
 			pLay->init();
@@ -126,14 +135,15 @@ void NeuronNet::init()
 */
 void NeuronNet::clear()
 {
-	int n = (int)model.size();
+	int n = (int)_model.size();
 	for (int i = 0; i < n - 1; i++)
 	{
-		Layer* pLay = model[i];
-		delete pLay;
-		pLay = nullptr;
+		std::shared_ptr<Layer> pLay = _model[i];
+		pLay.reset();
+		/*delete pLay;
+		pLay = nullptr;*/
 	}
-	model.clear(); 
+	_model.clear(); 
 
 	topology.clear();
 	return;
@@ -150,8 +160,8 @@ void NeuronNet::setFinish(bool state)
 
 void NeuronNet::predict(float* input)
 {
-	size_t n = model.size();
-	Layer* pLayer = model[0]; 
+	size_t n = _model.size();
+	std::shared_ptr<Layer> pLayer = _model[0];
 
 	if (nullptr == pLayer)
 	{
@@ -171,7 +181,7 @@ void NeuronNet::predict(float* input)
 
 	for (size_t i = 1; i < n; i++)
 	{
-		pLayer = model[i];
+		pLayer = _model[i];
 		if (!pLayer)
 		{
 			return;
@@ -187,8 +197,8 @@ void NeuronNet::train(float* input, float* y, float lr)
 	size_t n = topology.size();
 	int OUTPUT_SIZE = topology[n - 1];
 
-	size_t m = model.size();
-	Layer* pLayer = model[m - 1]; 
+	size_t m = _model.size();
+	std::shared_ptr<Layer> pLayer = _model[m - 1];
 	if (!pLayer)
 	{
 		return;
@@ -201,7 +211,7 @@ void NeuronNet::train(float* input, float* y, float lr)
 
 	float diffSum = 0.0f;
 	bool OK = true;
-	std::shared_ptr<DataType[]> pDiff = std::shared_ptr<DataType[]>(new DataType[OUTPUT_SIZE]);
+	std::shared_ptr<DataType[]> pDiff = std::shared_ptr<DataType[]>(new DataType[OUTPUT_SIZE], [](DataType* p) {delete[] p; p = nullptr; });
 	for (size_t i = 0; i < OUTPUT_SIZE; i++)
 	{
 		pDiff[i] = 0.0;
@@ -256,7 +266,7 @@ void NeuronNet::train(float* input, float* y, float lr)
 
 	for (int i = (int)m - 1; i > 0; i--)
 	{ 
-		pLayer = model[i];
+		pLayer = _model[i];
 		if (!pLayer)
 		{
 			return;
@@ -267,7 +277,7 @@ void NeuronNet::train(float* input, float* y, float lr)
 #endif
 
 		int inputNum = pLayer->getInputNum();
-		std::shared_ptr<DataType[]> input_Grad = std::shared_ptr<DataType[]>(new DataType[inputNum]);
+		std::shared_ptr<DataType[]> input_Grad = std::shared_ptr<DataType[]>(new DataType[inputNum], [](DataType* p) {delete[] p; p = nullptr; });
 		for (int i = 0; i < inputNum; i++)
 		{
 			input_Grad[i] = 0.0f;
@@ -331,7 +341,7 @@ void NeuronNet::load(const char* fileName)
 		thefile >> data;
 		int outputNum = atoi(data); 
 
-		Layer* pLayer = model[i]; 
+		std::shared_ptr<Layer> pLayer = _model[i];
 
 		for (int j = 0; j < outputNum; j++)
 		{
@@ -370,7 +380,7 @@ void NeuronNet::load(const char* fileName)
 				p->_weight = val;
 				if (i > 0)
 				{
-					Layer* pInputLayer = model[inLayerNum];
+					std::shared_ptr<Layer> pInputLayer = _model[inLayerNum];
 					if (pInputLayer)
 					{
 						std::shared_ptr<Neuron> pInputNeuron = pInputLayer->getNeuron(inNeuronIndex);
@@ -392,9 +402,9 @@ void NeuronNet::save(const char* fileName)
 { 
 	std::ofstream myfile;
 	myfile.open(fileName);
-	myfile << "NuronNetwork 2025/11/05 Version 0.1.1\n";
+	myfile << "NuronNetwork 2025/12/13 Version 0.1.3\n";
 
-	size_t n = model.size();
+	size_t n = _model.size();
 	myfile << n << std::endl;
 	for (size_t i = 0; i < n; i++)
 	{
@@ -403,7 +413,7 @@ void NeuronNet::save(const char* fileName)
 	myfile << std::endl;
 	for (size_t i = 0; i < n; i++)
 	{
-		Layer* pLay = model[i];
+		std::shared_ptr<Layer> pLay = _model[i];
 		myfile << pLay->toStr();
 	}
 	myfile << std::endl;
@@ -414,11 +424,11 @@ void NeuronNet::show()
 {
 	std::cout << std::endl;
 
-	size_t n = model.size();
+	size_t n = _model.size();
 	std::cout << "Layer Number: " << n << std::endl;
 	for (size_t i = 0; i < n; i++)
 	{
-		Layer* pLay = model[i];
+		std::shared_ptr<Layer> pLay = _model[i];
 		if (nullptr == pLay)
 		{
 			continue;
@@ -431,12 +441,12 @@ void NeuronNet::show()
  
 void NeuronNet::killConnection(uint layIndex, uint neuronIndex, uint connectionIndex)
 {
-	size_t n = model.size();
+	size_t n = _model.size();
 	if (layIndex >= n)
 	{
 		return;
 	}
-	Layer* pLay = model[layIndex];
+	std::shared_ptr<Layer> pLay = _model[layIndex];
 	if (nullptr != pLay)
 	{
 		pLay->killConnection(neuronIndex, connectionIndex);
@@ -446,12 +456,12 @@ void NeuronNet::killConnection(uint layIndex, uint neuronIndex, uint connectionI
 
 void NeuronNet::activeConnection(uint layIndex, uint neuronIndex, uint connectionIndex)
 {
-	size_t n = model.size();
+	size_t n = _model.size();
 	if (layIndex >= n)
 	{
 		return;
 	}
-	Layer* pLay = model[layIndex];
+	std::shared_ptr<Layer> pLay = _model[layIndex];
 	if (nullptr != pLay)
 	{
 		pLay->activeConnection(neuronIndex, connectionIndex);
@@ -461,14 +471,14 @@ void NeuronNet::activeConnection(uint layIndex, uint neuronIndex, uint connectio
 
 void NeuronNet::activeRandConnection(uint num)
 {
-	size_t n = model.size();
+	size_t n = _model.size();
 	//if (layIndex >= n)
 	//{
 	//	return;
 	//}
 	for (size_t i = 0; i < n; i++)
 	{
-		Layer* pLay = model[i];
+		std::shared_ptr<Layer> pLay = _model[i];
 		if (nullptr != pLay)
 		{
 			pLay->activeRandConnection(num);
@@ -479,12 +489,12 @@ void NeuronNet::activeRandConnection(uint num)
 
 void NeuronNet::setLayerOrder(uint layIndex, float val)
 {
-	size_t n = model.size();
+	size_t n = _model.size();
 	if (layIndex >= n)
 	{
 		return;
 	} 
-	Layer* pLay = model[layIndex];
+	std::shared_ptr<Layer> pLay = _model[layIndex];
 	if (nullptr != pLay)
 	{
 		pLay->setOrder(val);
@@ -494,12 +504,12 @@ void NeuronNet::setLayerOrder(uint layIndex, float val)
 
 void NeuronNet::setNeuronOrder(uint layIndex, uint neuronIndex, float val)
 {
-	size_t n = model.size();
+	size_t n = _model.size();
 	if (layIndex >= n)
 	{
 		return;
 	}
-	Layer* pLay = model[layIndex];
+	std::shared_ptr<Layer> pLay = _model[layIndex];
 	if (nullptr == pLay)
 	{
 		return;
@@ -521,13 +531,13 @@ void NeuronNet::setNeuronOrder(uint layIndex, uint neuronIndex, float val)
 
 void NeuronNet::setWeight(uint layIndex, uint neuronIndex, uint connectionIndex, float val)
 {
-	size_t n = model.size();
+	size_t n = _model.size();
 	if (layIndex >= n)
 	{
 		std::cout << "NeuronNet::setWeight(): Layer Index: " << layIndex << " overflow." << std::endl;
 		return;
 	}
-	Layer* pLay = model[layIndex];
+	std::shared_ptr<Layer> pLay = _model[layIndex];
 	if (nullptr == pLay)
 	{
 		std::cout << "NeuronNet::setWeight(): Invalid Layer." << std::endl;

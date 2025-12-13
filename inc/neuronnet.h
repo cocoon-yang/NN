@@ -33,10 +33,11 @@ public:
 	void setNeuronOrder(uint layIndex, uint neuronIndex, float val);
 
 	void setWeight(uint layIndex, uint neuronIndex, uint connectionIndex, float val);
-private:
-	std::vector<Layer*> model;
 
+private: 
 	std::vector<uint> topology; 
+
+	std::vector<std::shared_ptr<Layer>> _model;
 
 	bool _FINISH;
 };

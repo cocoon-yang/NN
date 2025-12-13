@@ -53,7 +53,7 @@ int Layer::getOutputNum() {
 	return _outputNum;
 }
 
-void Layer::init(Layer* pLayer)
+void Layer::init(std::shared_ptr<Layer> pLayer)
 {
 	clear();
 	//if (nullptr == pLayer)

@@ -22,7 +22,7 @@ public:
 	std::shared_ptr<Neuron> getPtr();
 
 public:
-	void init(Layer* pLayer = nullptr);
+	void init(std::shared_ptr<Layer> pLayer = nullptr);
 	void setWeight(std::vector<float>& values);
 
 	void setWeight(uint connectionIndex, DataType val);

@@ -51,7 +51,7 @@ std::shared_ptr<Neuron> Neuron::getPtr()
 	return shared_from_this();
 }
 
-void Neuron::init(Layer* pInputLayer)
+void Neuron::init(std::shared_ptr<Layer> pInputLayer)
 { 
 	float scale = sqrtf(2.0f);
 	if (_inputNum > 0)
@@ -92,14 +92,13 @@ void Neuron::init(Layer* pInputLayer)
 			} 
 		}
 	}
-
-
+	 
 	//if (nullptr == pInputLayer)
 	//{
 	//	_pConnections.clear();
 	//	for (int i = 0; i < _inputNum; i++) {
 	//		std::shared_ptr<Connection> p = std::make_shared<Connection>();
-
+	//
 	//		float tmp = (getRandVal() - 0.5f) * 2 * scale;
 	//		p->_weight = tmp; 
 	//		p->_pInputNero = nullptr;
@@ -110,7 +109,7 @@ void Neuron::init(Layer* pInputLayer)
 	//	_pConnections.clear();
 	//	for (int i = 0; i < _inputNum; i++) {
 	//		std::shared_ptr<Connection> p = std::make_shared<Connection>();
-
+	//
 	//		float tmp = (getRandVal() - 0.5f) * 2 * scale;
 	//		p->_weight = tmp;
 	//		p->_pInputNero = pInputLayer->getNeuron(i);
@@ -322,8 +321,11 @@ void Neuron::updataWeight(DataType diffVal, std::shared_ptr<DataType[]> varGrad,
 	std::cout << "  Neuron::updataWeight() "   << std::endl;
 #endif
   
-	std::shared_ptr<DataType[]> pVal = std::shared_ptr<DataType[]>(new DataType[_inputNum]);
-
+	std::shared_ptr<DataType[]> pVal = std::shared_ptr<DataType[]>(new DataType[_inputNum], [](DataType* p) {delete[] p; p = nullptr; });
+	if (!pVal)
+	{
+		return;
+	}
 	for (size_t j = 0; j < _inputNum; j++)
 	{
 		if (!_pConnections[j])
@@ -362,8 +364,7 @@ void Neuron::updataWeight(DataType diffVal, std::shared_ptr<DataType[]> varGrad,
 	//{  
 	//	_bias = XZ; 
 	//}
-
-
+	 
 	for (int j = 0; j < _inputNum; j++)
 	{
 		if (!_pConnections[j])
@@ -389,12 +390,7 @@ void Neuron::updataWeight(DataType diffVal, std::shared_ptr<DataType[]> varGrad,
 		{
 			continue;
 		}
-
-
-
-
-  
-
+		 
 		//tmp = calcuOutput(pVal[j]);
 		//_weights[j] -= learnRate * tmp * diffVal;
 		tmp = _pConnections[j]->_pInputNero->_value;
